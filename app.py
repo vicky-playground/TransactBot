@@ -72,7 +72,7 @@ def init_llm():
 init_llm()
 
 # load the file
-document = SimpleDirectoryReader(input_files=["catalog.txt"]).load_data()
+document = SimpleDirectoryReader(input_files=["policy.txt"]).load_data()
 
 # LLMPredictor: to generate the text response (Completion)
 llm_predictor = LLMPredictor(
