@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>All Records</title>
+    <!-- Add CSS for styling -->
+</head>
+<body>
+    <h1>All Expense Records</h1>
+    <table>
+        <tr>
+            <th>Date</th>
+            <th>Item</th>
+            <th>Amount</th>
+        </tr>
+        {% for expense in expenses %}
+        <tr>
+            <td>{{ expense['date'] }}</td>
+            <td>{{ expense['item'] }}</td>
+            <td>{{ expense['amount'] }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>
