@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Edit Expense</title>
+    <!-- Add CSS for styling -->
+</head>
+<body>
+    <h1>Edit Expense</h1>
+    <form method="POST">
+        <input type="date" name="date" value="{{ expense['date'] }}" required>
+        <input type="text" name="item" value="{{ expense['item'] }}" required>
+        <input type="number" name="amount" value="{{ expense['amount'] }}" required>
+        <button type="submit">Update Expense</button>
+    </form>
+</body>
+</html>
