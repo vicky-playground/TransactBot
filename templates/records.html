@@ -7,6 +7,7 @@
 <body>
     <h1>All Expense Records</h1>
     <table>
+        <!-- Table for individual expenses -->
         <tr>
             <th>Date</th>
             <th>Item</th>
@@ -20,7 +21,22 @@
         </tr>
         {% endfor %}
     </table>
-    <!-- Go Back Button -->
+
+    <!-- Table for total amount by month -->
+    <h2>Total Amount by Month</h2>
+    <table>
+        <tr>
+            <th>Month</th>
+            <th>Total Amount</th>
+        </tr>
+        {% for total in totals_by_month %}
+        <tr>
+            <td>{{ total['month'] }}</td>
+            <td>{{ total['total'] }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
     <button onclick="window.location.href='/'">Go Back</button>
 </body>
 </html>
