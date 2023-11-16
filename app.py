@@ -6,7 +6,14 @@ app = Flask(__name__)
 def get_db_connection():
     conn = sqlite3.connect('tracker.db')
     conn.row_factory = sqlite3.Row
+    # Check if the table exists, and create it if it doesn't
+    conn.execute("""CREATE TABLE IF NOT EXISTS expense (
+        date DATE,
+        item TEXT,
+        amount INTEGER
+    )""")
     return conn
+
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
