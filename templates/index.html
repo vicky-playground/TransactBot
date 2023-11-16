@@ -1,1 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Expense Tracker</title>
+    <!-- Add CSS for styling -->
+</head>
+<body>
+    <h1>Expense Tracker</h1>
+    <form method="POST">
+        <input type="date" name="date" required>
+        <input type="text" name="item" placeholder="Item" required>
+        <input type="number" name="amount" placeholder="Amount" required>
+        <button type="submit">Add Expense</button>
+    </form>
+    <table>
+        <tr>
+            <th>Date</th>
+            <th>Item</th>
+            <th>Amount</th>
+            <th>Actions</th>
+        </tr>
+        {% for expense in expenses %}
+        <tr>
+            <td>{{ expense['date'] }}</td>
+            <td>{{ expense['item'] }}</td>
+            <td>{{ expense['amount'] }}</td>
+            <td>
+                <a href="{{ url_for('edit', id=expense['rowid']) }}">Edit</a>
+                <form method="POST" action="{{ url_for('delete', id=expense['rowid']) }}">
+                    <button type="submit">Delete</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+    <a href="/records">View All Records</a>
+</body>
+</html>
 
