@@ -55,8 +55,20 @@ def delete(id):
 def records():
     conn = get_db_connection()
     expenses = conn.execute('SELECT * FROM expense ORDER BY date DESC').fetchall()
+
+    # SQL to calculate total amount spent per month
+    totals_by_month = conn.execute("""
+        SELECT 
+            strftime('%Y-%m', date) as month, 
+            sum(amount) as total 
+        FROM expense 
+        GROUP BY strftime('%Y-%m', date)
+        ORDER BY month DESC
+    """).fetchall()
+
     conn.close()
-    return render_template('records.html', expenses=expenses)
+    return render_template('records.html', expenses=expenses, totals_by_month=totals_by_month)
+
 
 if __name__ == '__main__':
     app.run(debug=True)
