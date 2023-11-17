@@ -1,3 +1,28 @@
+# Assuming this function exists in model.py and utilizes the created CSV
+from model import llm_hub, embeddings
+from langchain_experimental.agents.agent_toolkits import create_csv_agent
+from langchain.embeddings import HuggingFaceInstructEmbeddings
+from langchain.embeddings.sentence_transformer import SentenceTransformerEmbeddings
+from langchain.text_splitter import CharacterTextSplitter
+from langchain.vectorstores import Chroma
+
+
+from langchain.document_loaders import CSVLoader
+from langchain.indexes import VectorstoreIndexCreator
+from langchain.chains import RetrievalQA
+import os
+from langchain.agents import initialize_agent, Tool
+from langchain.agents import AgentType
+from langchain import LLMMathChain
+
+
+loader = CSVLoader(file_path='data.csv')
+pages = loader.load()
+print("Number of pages loaded:", len(pages))  # Debugging print statement
+
+# create calculator tool
+calculator = LLMMathChain.from_llm(llm=llm_hub, verbose=True)
+
 import sqlite3
 from flask import Flask, render_template, request, redirect, url_for
 
@@ -82,7 +107,7 @@ import csv
 
 def save_to_csv():
     conn = get_db_connection()
-    expenses = conn.execute('SELECT * FROM expense ORDER BY date DESC').fetchall()
+    expenses = conn.execute('SELECT rowid, date, item, amount FROM expense ORDER BY date DESC').fetchall()
     conn.close()
 
     with open('data.csv', 'w', newline='') as file:
@@ -91,24 +116,79 @@ def save_to_csv():
         for expense in expenses:
             writer.writerow([expense['rowid'], expense['date'], expense['item'], expense['amount']])
 
+from langchain.chains import ConversationalRetrievalChain
+from langchain.memory import ConversationBufferMemory
+from langchain.prompts import PromptTemplate
 
-# Assuming this function exists in model.py and utilizes the created CSV
-from model import llm_hub
-from langchain_experimental.agents.agent_toolkits import create_csv_agent
-
-
-
-
+template = """Use the following pieces of context to answer the question at the end. If you don't know the answer, just say that you don't know, don't try to make up an answer. Use three sentences maximum. Keep the answer as concise as possible. Always say "thanks for asking!" at the end of the answer.
+{context}
+Question: {question}
+Helpful Answer:"""
 
 @app.route('/ask', methods=['GET', 'POST'])
 def ask_question():
     if request.method == 'POST':
         question = request.form['question']
-        answer = conversation_retrieval_chain.run(question)
-        return render_template('answer.html', question=question, answer=answer)
-    
-    return render_template('ask_question.html')
+        if pages:
+            # Initialize vector store only if pages are not empty
+            vectordb = Chroma.from_documents(
+                documents=pages,
+                embedding=embeddings,
+                persist_directory='docs/chroma'
+            )
+            vectordb.persist()
 
+            # Retrieval chain setup
+            retriever = vectordb.as_retriever()
+            qa = ConversationalRetrievalChain.from_llm(
+                llm_hub,
+                retriever=retriever,
+                memory=ConversationBufferMemory(memory_key="chat_history", return_messages=True),
+                combine_docs_chain_kwargs={"prompt": PromptTemplate.from_template(template)}
+            )
+            result = qa({"question": question})
+            answer = result.get('answer', 'No answer found.')
+            print(f"answer:{answer}")
+
+            # prep the (tk policy) vectordb retriever, the python_repl(with df access) and langchain calculator as tools for the agent
+            tools = [
+                Tool(
+                    name = "Conversation History",
+                    func=qa.run,
+                    description="""
+                    Useful for when you need to answer questions about expenses.
+                    ...
+                    """
+                ),
+                Tool(
+                    name = "Calculator",
+                    func=calculator.run,
+                    description = f"""
+                    Useful when you need to do math operations or arithmetic.
+                    """
+                )
+            ]
+
+            # change the value of the prefix argument in the initialize_agent function. This will overwrite the default prompt template of the zero shot agent type
+            agent_kwargs = {'prefix': f'You are friendly expense tracking assistant. You are tasked to assist the current user on questions related to expenses. You have access to the following tools:'}
+
+
+            # initialize the LLM agent
+            agent = initialize_agent(tools, 
+                                    llm_hub, 
+                                    agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION, 
+                                    verbose=True, 
+                                    agent_kwargs=agent_kwargs
+                                    )
+
+            response = agent.run(question)
+            print(f"response: {response}")
+
+            return render_template('index.html', question=question, answer=answer)
+        else:
+            return "No data loaded from CSV", 400
+
+    return redirect(url_for('index'))
 
 
 if __name__ == '__main__':
