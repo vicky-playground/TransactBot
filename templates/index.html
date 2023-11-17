@@ -2,16 +2,17 @@
 <html>
 <head>
     <title>Expense Tracker</title>
-    <!-- Add CSS for styling -->
+    <link rel="stylesheet" href="static/styles.css">
 </head>
 <body>
     <h1>Expense Tracker</h1>
     <form method="POST">
         <input type="date" name="date" required>
-        <input type="text" name="item" placeholder="Item" required>
+        <input type="text" name="item" placeholder="Item" required pattern=".*\D+.*" title="Item must contain at least one non-digit character">
         <input type="number" name="amount" placeholder="Amount" required>
-        <button type="submit">Add Expense</button>
+        <button type="submit" class="button">Add Expense</button>
     </form>
+    <a href="/records" class="button">View All Records</a>
     <table>
         <tr>
             <th>Date</th>
@@ -25,15 +26,14 @@
             <td>{{ expense['item'] }}</td>
             <td>{{ expense['amount'] }}</td>
             <td>
-                <a href="{{ url_for('edit', id=expense['rowid']) }}">Edit</a>
+                <a href="{{ url_for('edit', id=expense['rowid']) }}" class="button">Edit</a>
                 <form method="POST" action="{{ url_for('delete', id=expense['rowid']) }}">
-                    <button type="submit">Delete</button>
-                </form>
+                    <button type="submit" class="button-delete">Delete</button>
+                </form>                                               
             </td>
         </tr>
         {% endfor %}
     </table>
-    <a href="/records">View All Records</a>
 </body>
 </html>
 
