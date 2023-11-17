@@ -27,6 +27,7 @@ def index():
 
         conn.execute('INSERT INTO expense (date, item, amount) VALUES (?, ?, ?)', (date, item, amount))
         conn.commit()
+        save_to_csv()
         return redirect(url_for('index'))
 
     expenses = conn.execute('SELECT rowid, * FROM expense ORDER BY date DESC LIMIT 5').fetchall()
@@ -45,6 +46,7 @@ def edit(id):
         amount = request.form['amount']
         conn.execute('UPDATE expense SET date = ?, item = ?, amount = ? WHERE rowid = ?', (date, item, amount, id))
         conn.commit()
+        save_to_csv()
         return redirect(url_for('index'))
 
     return render_template('edit.html', expense=expense)
@@ -74,6 +76,39 @@ def records():
 
     conn.close()
     return render_template('records.html', expenses=expenses, totals_by_month=totals_by_month)
+
+
+import csv
+
+def save_to_csv():
+    conn = get_db_connection()
+    expenses = conn.execute('SELECT * FROM expense ORDER BY date DESC').fetchall()
+    conn.close()
+
+    with open('data.csv', 'w', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow(['ID', 'Date', 'Item', 'Amount'])
+        for expense in expenses:
+            writer.writerow([expense['rowid'], expense['date'], expense['item'], expense['amount']])
+
+
+# Assuming this function exists in model.py and utilizes the created CSV
+from model import llm_hub
+from langchain_experimental.agents.agent_toolkits import create_csv_agent
+
+
+
+
+
+@app.route('/ask', methods=['GET', 'POST'])
+def ask_question():
+    if request.method == 'POST':
+        question = request.form['question']
+        answer = conversation_retrieval_chain.run(question)
+        return render_template('answer.html', question=question, answer=answer)
+    
+    return render_template('ask_question.html')
+
 
 
 if __name__ == '__main__':
