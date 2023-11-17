@@ -18,15 +18,21 @@ def get_db_connection():
 @app.route('/', methods=['GET', 'POST'])
 def index():
     conn = get_db_connection()
+    error_message = None
+
     if request.method == 'POST':
         date = request.form['date']
         item = request.form['item']
         amount = request.form['amount']
+
         conn.execute('INSERT INTO expense (date, item, amount) VALUES (?, ?, ?)', (date, item, amount))
         conn.commit()
+        return redirect(url_for('index'))
+
     expenses = conn.execute('SELECT rowid, * FROM expense ORDER BY date DESC LIMIT 5').fetchall()
     conn.close()
     return render_template('index.html', expenses=expenses)
+
 
 @app.route('/edit/<int:id>', methods=['GET', 'POST'])
 def edit(id):
@@ -54,7 +60,7 @@ def delete(id):
 @app.route('/records')
 def records():
     conn = get_db_connection()
-    expenses = conn.execute('SELECT * FROM expense ORDER BY date DESC').fetchall()
+    expenses = conn.execute('SELECT rowid, * FROM expense ORDER BY date DESC').fetchall()
 
     # SQL to calculate total amount spent per month
     totals_by_month = conn.execute("""
