@@ -2,41 +2,31 @@
 <html>
 <head>
     <title>All Records</title>
-    <!-- Add CSS for styling -->
+    <link rel="stylesheet" href="static/styles.css">
 </head>
 <body>
     <h1>All Expense Records</h1>
+    <a href="/" class="button">Go Back</a>
     <table>
-        <!-- Table for individual expenses -->
         <tr>
             <th>Date</th>
             <th>Item</th>
             <th>Amount</th>
+            <th>Actions</th> <!-- Added Actions column -->
         </tr>
         {% for expense in expenses %}
         <tr>
             <td>{{ expense['date'] }}</td>
             <td>{{ expense['item'] }}</td>
             <td>{{ expense['amount'] }}</td>
+            <td>
+                <a href="{{ url_for('edit', id=expense['rowid']) }}" class="button">Edit</a>
+                <form method="POST" action="{{ url_for('delete', id=expense['rowid']) }}">
+                    <button type="submit" class="button-delete">Delete</button>
+                </form>      
+            </td>
         </tr>
         {% endfor %}
     </table>
-
-    <!-- Table for total amount by month -->
-    <h2>Total Amount by Month</h2>
-    <table>
-        <tr>
-            <th>Month</th>
-            <th>Total Amount</th>
-        </tr>
-        {% for total in totals_by_month %}
-        <tr>
-            <td>{{ total['month'] }}</td>
-            <td>{{ total['total'] }}</td>
-        </tr>
-        {% endfor %}
-    </table>
-
-    <button onclick="window.location.href='/'">Go Back</button>
 </body>
 </html>
