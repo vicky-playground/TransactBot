@@ -6,6 +6,16 @@
 </head>
 <body>
     <h1>Expense Tracker</h1>
+    <form method="POST" action="/ask">
+        <input type="text" name="question" class="ask" placeholder="Ask a question" required>
+        <button type="submit" class="button">Submit Question</button>
+    </form>
+    {% if response %}
+    <div class="llm-response">
+        <p><strong>Response:</strong> {{ response }}</p>
+    </div>
+    {% endif %}
+    <p></p>
     <form method="POST">
         <input type="date" name="date" required>
         <input type="text" name="item" placeholder="Item" required pattern=".*\D+.*" title="Item must contain at least one non-digit character">
@@ -36,4 +46,3 @@
     </table>
 </body>
 </html>
-
