@@ -59,6 +59,11 @@ def index():
     # Fetch all expenses
     all_expenses = conn.execute('SELECT rowid, * FROM expense ORDER BY date DESC').fetchall()
     conn.close()
+
+    # Read expenses from CSV file
+    df = pd.read_csv('data.csv')
+    all_expenses = df.to_dict(orient='records')
+
     return render_template('index.html', all_expenses=all_expenses)
 
 
