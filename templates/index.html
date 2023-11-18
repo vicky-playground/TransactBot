@@ -6,6 +6,8 @@
 </head>
 <body>
     <h1>Expense Tracker</h1>
+
+    <!-- Form for Asking Questions -->
     <form method="POST" action="/ask">
         <input type="text" name="question" class="ask" placeholder="Ask a question" required>
         <button type="submit" class="button">Submit Question</button>
@@ -15,14 +17,17 @@
         <p><strong>Response:</strong> {{ response }}</p>
     </div>
     {% endif %}
-    <p></p>
+
+    <!-- Form for Adding Expenses -->
     <form method="POST">
         <input type="date" name="date" required>
         <input type="text" name="item" placeholder="Item" required pattern=".*\D+.*" title="Item must contain at least one non-digit character">
         <input type="number" name="amount" placeholder="Amount" required>
         <button type="submit" class="button">Add Expense</button>
     </form>
-    <a href="/records" class="button">View All Records</a>
+
+    <!-- All Expenses Section -->
+    <h2>All Expenses</h2>
     <table>
         <tr>
             <th>Date</th>
@@ -30,7 +35,7 @@
             <th>Amount</th>
             <th>Actions</th>
         </tr>
-        {% for expense in expenses %}
+        {% for expense in all_expenses %}
         <tr>
             <td>{{ expense['date'] }}</td>
             <td>{{ expense['item'] }}</td>
@@ -39,7 +44,7 @@
                 <a href="{{ url_for('edit', id=expense['rowid']) }}" class="button">Edit</a>
                 <form method="POST" action="{{ url_for('delete', id=expense['rowid']) }}">
                     <button type="submit" class="button-delete">Delete</button>
-                </form>                                               
+                </form>
             </td>
         </tr>
         {% endfor %}
