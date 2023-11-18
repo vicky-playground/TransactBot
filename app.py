@@ -51,20 +51,21 @@ def index():
         item = request.form['item']
         amount = request.form['amount']
 
+        # Insert new expense into the database
         conn.execute('INSERT INTO expense (date, item, amount) VALUES (?, ?, ?)', (date, item, amount))
         conn.commit()
-        save_to_csv()
+        save_to_csv()  # Update CSV file after adding new expense
         return redirect(url_for('index'))
 
-    # Fetch all expenses
+    # Fetch all expenses from the database
     all_expenses = conn.execute('SELECT rowid, * FROM expense ORDER BY date DESC').fetchall()
+    for expense in all_expenses:
+        print(expense['rowid'])  # This should print the rowid of each expense
+
     conn.close()
 
-    # Read expenses from CSV file
-    df = pd.read_csv('data.csv')
-    all_expenses = df.to_dict(orient='records')
-
     return render_template('index.html', all_expenses=all_expenses)
+
 
 
 @app.route('/edit/<int:id>', methods=['GET', 'POST'])
@@ -139,6 +140,7 @@ def ask_question():
     if request.method == 'POST':
         question = request.form['question']
         if pages:
+            print(pages)
             # Initialize vector store only if pages are not empty
             vectordb = Chroma.from_documents(
                 documents=pages,
@@ -197,7 +199,7 @@ def ask_question():
                     name = "Calculator",
                     func=calculator.run,
                     description = f"""
-                    Useful when you need to do math operations or arithmetic.
+                    useful for when you need to answer questions about math.
                     """
                 )
             ]
