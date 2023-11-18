@@ -13,12 +13,13 @@ from langchain.chains import RetrievalQA
 import os
 from langchain.agents import initialize_agent, Tool
 from langchain.agents import AgentType
-from langchain import LLMMathChain
+from langchain.chains import LLMMathChain
 
 
 loader = CSVLoader(file_path='data.csv')
 pages = loader.load()
 print("Number of pages loaded:", len(pages))  # Debugging print statement
+print(pages)
 
 # create calculator tool
 calculator = LLMMathChain.from_llm(llm=llm_hub, verbose=True)
@@ -55,9 +56,10 @@ def index():
         save_to_csv()
         return redirect(url_for('index'))
 
-    expenses = conn.execute('SELECT rowid, * FROM expense ORDER BY date DESC LIMIT 5').fetchall()
+    # Fetch all expenses
+    all_expenses = conn.execute('SELECT rowid, * FROM expense ORDER BY date DESC').fetchall()
     conn.close()
-    return render_template('index.html', expenses=expenses)
+    return render_template('index.html', all_expenses=all_expenses)
 
 
 @app.route('/edit/<int:id>', methods=['GET', 'POST'])
@@ -119,6 +121,8 @@ def save_to_csv():
 from langchain.chains import ConversationalRetrievalChain
 from langchain.memory import ConversationBufferMemory
 from langchain.prompts import PromptTemplate
+import pandas as pd
+from langchain_experimental.tools.python.tool import PythonAstREPLTool
 
 template = """Use the following pieces of context to answer the question at the end. If you don't know the answer, just say that you don't know, don't try to make up an answer. Use three sentences maximum. Keep the answer as concise as possible. Always say "thanks for asking!" at the end of the answer.
 {context}
@@ -138,26 +142,50 @@ def ask_question():
             )
             vectordb.persist()
 
+            """
             # Retrieval chain setup
             retriever = vectordb.as_retriever()
             qa = ConversationalRetrievalChain.from_llm(
                 llm_hub,
                 retriever=retriever,
-                memory=ConversationBufferMemory(memory_key="chat_history", return_messages=True),
                 combine_docs_chain_kwargs={"prompt": PromptTemplate.from_template(template)}
             )
             result = qa({"question": question})
             answer = result.get('answer', 'No answer found.')
             print(f"answer:{answer}")
+            """
+
+            # initialize vectordb retriever object
+            qa = RetrievalQA.from_chain_type(
+                llm=llm_hub,
+                chain_type="stuff",
+                retriever=vectordb.as_retriever(),
+            )
+
+            df = pd.read_csv("data.csv") # load employee_data.csv as dataframe
+            python = PythonAstREPLTool(locals={"df": df}) # set access of python_repl tool to the dataframe
+
+            # create calculator tool
+            calculator = LLMMathChain.from_llm(llm=llm_hub, verbose=True)
+
+            df_columns = df.columns.to_list() 
 
             # prep the (tk policy) vectordb retriever, the python_repl(with df access) and langchain calculator as tools for the agent
             tools = [
                 Tool(
-                    name = "Conversation History",
+                    name = "Expense Records",
                     func=qa.run,
-                    description="""
-                    Useful for when you need to answer questions about expenses.
-                    ...
+                    description=f"""
+                    Useful for when you need to answer questions about expense records. 
+                    """
+                ),                
+                Tool(
+                    name = "Expense Record Data",
+                    func=python.run,
+                    description=f"""
+                    Useful for when you need to answer questions about expense records stored in pandas dataframe 'df'. 
+                    Run python pandas operations on 'df' to help you get the right answer.
+                     'df' has the following columns: {df_columns}      
                     """
                 ),
                 Tool(
@@ -172,7 +200,6 @@ def ask_question():
             # change the value of the prefix argument in the initialize_agent function. This will overwrite the default prompt template of the zero shot agent type
             agent_kwargs = {'prefix': f'You are friendly expense tracking assistant. You are tasked to assist the current user on questions related to expenses. You have access to the following tools:'}
 
-
             # initialize the LLM agent
             agent = initialize_agent(tools, 
                                     llm_hub, 
@@ -184,7 +211,7 @@ def ask_question():
             response = agent.run(question)
             print(f"response: {response}")
 
-            return render_template('index.html', question=question, answer=answer)
+            return render_template('index.html', question=question, answer=response)
         else:
             return "No data loaded from CSV", 400
 
