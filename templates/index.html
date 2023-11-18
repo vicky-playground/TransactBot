@@ -26,21 +26,27 @@
         <button type="submit" class="button">Add Expense</button>
     </form>
 
-    <!-- Displaying All Expenses -->
     <h2>All Expenses</h2>
     <table>
         <tr>
             <th>Date</th>
             <th>Item</th>
             <th>Amount</th>
+            <th>Actions</th>
         </tr>
         {% for expense in all_expenses %}
         <tr>
-            <td>{{ expense['Date'] }}</td>
-            <td>{{ expense['Item'] }}</td>
-            <td>{{ expense['Amount'] }}</td>
+            <td>{{ expense['date'] }}</td>
+            <td>{{ expense['item'] }}</td>
+            <td>{{ expense['amount'] }}</td>
+            <td>
+                <a href="{{ url_for('edit', id=expense['rowid']) }}" class="button">Edit</a>
+                <form method="POST" action="{{ url_for('delete', id=expense['rowid']) }}">
+                    <button type="submit" class="button-delete">Delete</button>
+                </form>
+            </td>
         </tr>
-        {% endfor %}
+    {% endfor %}    
     </table>
 </body>
 </html>
