@@ -86,12 +86,12 @@ QUERY = """
 Given an input question, first create a syntactically correct PostgreSQL query to run, then look at the results of the query and return the answer.
 Use the following format:
 
-Question: Question here
+Query: {question}
 SQLQuery: SQL Query to run
 SQLResult: Result of the SQLQuery
 Answer: Final answer here
 
-{question}
+
 """
 
 question = "total amount?"
@@ -172,20 +172,19 @@ def records():
     return render_template('records.html', expenses=expenses, totals_by_month=totals_by_month)
 
 
-@app.route('/ask', methods=['GET', 'POST'])
+@app.route('/ask', methods=['POST'])
 def ask_question():
-    if request.method == 'POST':
-        print(db.table_info)
-        question = request.form['question']
-        prompt = QUERY.format(question=question)
-        response = db_chain.run(prompt)
-        print(f"response: {response}")
-        return render_template('index.html', question=prompt, answer=response)
-
-    return redirect(url_for('index'))
+    print(request.form)
+    print(db.table_info)
+    question = request.form['question']
+    print(f"Question received: {question}")
+    prompt = QUERY.format(question=question)
+    response = db_chain.run(prompt)
+    print(f"answer: {response}")
+    return render_template('index.html', question=prompt, answer=response)
 
 if __name__ == '__main__':
-    app.run(debug=False)
+    app.run(debug=True)
 
 
 
