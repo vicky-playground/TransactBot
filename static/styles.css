@@ -2,108 +2,12 @@ body {
     font-family: Arial, sans-serif;
     background-color: #f4f4f4;
     margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+    padding: 20px;
 }
 
-h1, h2 {
+h1 {
     color: #333;
 }
-
-.container {
-    width: 80%;
-    margin: auto;
-    overflow: hidden;
-}
-
-.header {
-    background: #333;
-    color: #fff;
-    padding: 20px;
-    text-align: center;
-}
-
-form {
-    background: #fff;
-    padding: 20px;
-    margin-top: 20px;
-}
-
-input[type="text"],
-input[type="number"],
-input[type="date"] {
-    background: yellow; /* Set background color to yellow for input fields */
-    color: #333; /* Set text color for better visibility */
-    padding: 10px; /* Adjust padding as needed */
-    border: 1px solid #ddd; /* Optional: you can adjust border style */
-    margin: 10px 0;
-}
-
-form button.button {
-    background: yellow; /* Set background color to yellow for the button */
-    color: #333; /* Set text color for better visibility */
-    padding: 10px 15px; /* Adjust padding to match input fields */
-    border: 1px solid #ddd; /* Optional: you can adjust border style */
-    margin: 10px 0;
-}
-
-
-.button, .button-link {
-    background: #333;
-    color: #fff;
-    padding: 10px 15px;
-    text-decoration: none;
-    border: none;
-    cursor: pointer;
-    display: inline-block;
-    margin: 10px 0;
-}
-
-.button:hover{
-    background: #f4f4f4;
-    color: black;
-    padding: 10px 15px;
-    border: black;
-    margin: 10px 0;
-    cursor: pointer;
-}
-
-form .button-delete {
-    background: #333; /* Same as Edit button */
-    color: #fff;
-    padding: 10px 15px;
-    text-decoration: none;
-    border: none;
-    cursor: pointer;
-    display: inline-block;
-    margin: 10px 0;
-    font-size: inherit;
-}    
-
-form .button-delete:hover {
-    background: #f4f4f4; /* Hover state, same as .button */
-    color: black;
-}
-
-.button-link:hover  {
-    background: #d9d9d9;
-}
-
-form button.button {
-    font-size: inherit; /* Match font size of the link */
-    text-align: left;  /* Align text like a link */
-    width: auto;       /* Auto width similar to a link */
-    border: 0;         /* Remove border */
-    outline: none;     /* Remove outline */
-    box-shadow: none;  /* Remove box shadow */
-}
-
-form {
-    display: inline; /* Inline display for the form */
-    margin: 0;       /* Remove margin */
-    padding: 0;      /* Remove padding */
-}
-
 
 table {
     width: 100%;
@@ -111,20 +15,45 @@ table {
     margin: 20px 0;
 }
 
-table, th, td {
-    border: 1px solid #ddd;
-}
-
 th, td {
-    padding: 10px;
+    padding: 8px;
     text-align: left;
+    border-bottom: 1px solid #ddd;
 }
 
 th {
-    background-color: #333;
+    background-color: #0043ce;
     color: white;
 }
 
-tr:nth-child(even) {
-    background-color: #f2f2f2;
+tr:hover {
+    background-color: #f5f5f5;
+}
+
+.form-container {
+    display: flex;
+    align-items: center; 
+    justify-content: start; 
+    gap: 10px; 
+}
+
+
+.form-container input[type="text"],
+.form-container input[type="submit"] {
+    height: 40px; 
+    padding: 0 10px; 
+    font-size: 16px; 
+    line-height: 40px;     
+}
+
+.form-container input[type="text"] {
+    width: 640px; 
+}
+
+
+.response {
+    background-color: #dcdcdc;
+    padding: 10px;
+    width: 90%; 
+    margin-top: 20px;
 }
