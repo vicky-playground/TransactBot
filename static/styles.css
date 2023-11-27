@@ -57,3 +57,25 @@ tr:hover {
     width: 90%; 
     margin-top: 20px;
 }
+
+/* Spinner Styles */
+.spinner {
+    border: 4px solid rgba(0, 0, 0, 0.1);
+    border-top-color: #09f;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s ease-in-out infinite;
+    position: fixed; /* Fixed positioning to place it relative to the viewport */
+    top: 50%; /* Center vertically */
+    left: 50%; /* Center horizontally */
+    margin-top: -20px; /* Offset by half the height */
+    margin-left: -20px; /* Offset by half the width */
+    z-index: 1000; /* Make sure it's above other elements */
+    display: none; /* Hidden by default */
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
