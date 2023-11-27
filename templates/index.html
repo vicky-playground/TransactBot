@@ -5,6 +5,7 @@
     <link rel="stylesheet" href="static/styles.css">
 </head>
 <body>
+    <div class="spinner" id="loadingSpinner"></div>
     <h1>Banking Transaction History</h1>
 
     <!-- Introduction Section -->
@@ -55,5 +56,15 @@
         </tr>
         {% endfor %}
     </table>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var form = document.querySelector('form');
+            var spinner = document.getElementById('loadingSpinner');
+    
+            form.onsubmit = function() {
+                spinner.style.display = 'block';
+            };
+        });
+    </script>
 </body>
 </html>
