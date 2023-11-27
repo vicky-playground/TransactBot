@@ -1,52 +1,59 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Expense Tracker</title>
+    <title>Banking Transactions</title>
     <link rel="stylesheet" href="static/styles.css">
 </head>
 <body>
-    <h1>Expense Tracker</h1>
+    <h1>Banking Transaction History</h1>
 
-    <!-- Form for Asking Questions -->
-    <form method="POST" action="/ask">
-        <input type="text" name="question" class="ask" placeholder="Ask a question" required>
-        <button type="submit" class="button">Submit Question</button>
-    </form>
-    {% if response %}
-    <div class="llm-response">
-        <p><strong>Response:</strong> {{ response }}</p>
+    <!-- Introduction Section -->
+    <div class="introduction">
+        <p>Welcome to the Banking Transaction History system. Here, you can inquire about various aspects of your financial transactions. Just type your query in the form below and get insights into your expenses, incomes, and overall balance. Use the example queries as a guide to format your questions.</p>
+    </div>
+
+    <!-- Example Questions Section -->
+    <div class="examples">
+        <p>Example Inquiries:</p>
+        <ul>
+            <li>Total expense in 2023 Dec?</li>
+            <li>Total salary since 2023 Dec?</li>    
+            <li>The net balance of transactions in 2023 Dec?</li>   
+            <li>Total expense recorded as 'debit' in 2023?</li>        
+            <li>Largest transaction in Q1 2023?</li>       
+            <li>Number of transactions since 2024?</li>                 
+        </ul>
+    </div>
+
+    <div class="form-container">
+        <form method="POST" action="/inquiry">
+            <label for="inquiry">Submit an Inquiry:</label>
+            <input type="text" id="inquiry" name="inquiry" placeholder="E.g. Total expense in 2023 Dec?" required>
+            <input type="submit" value="Submit" class="submit-button">
+        </form>
+        <!-- Response display -->
+    </div>
+    {% if answer %}
+    <div class="response">
+        <p><strong>Response:</strong> {{ answer }}</p>
     </div>
     {% endif %}
 
-    <!-- Form for Adding Expenses -->
-    <form method="POST">
-        <input type="date" name="date" required>
-        <input type="text" name="item" placeholder="Item" required pattern=".*\D+.*" title="Item must contain at least one non-digit character">
-        <input type="number" name="amount" placeholder="Amount" required>
-        <button type="submit" class="button">Add Expense</button>
-    </form>
-
-    <h2>All Expenses</h2>
     <table>
         <tr>
             <th>Date</th>
-            <th>Item</th>
+            <th>Description</th>
             <th>Amount</th>
-            <th>Actions</th>
+            <th>Type</th>
         </tr>
-        {% for expense in all_expenses %}
+        {% for transaction in transactions %}
         <tr>
-            <td>{{ expense['date'] }}</td>
-            <td>{{ expense['item'] }}</td>
-            <td>{{ expense['amount'] }}</td>
-            <td>
-                <a href="{{ url_for('edit', id=expense['rowid']) }}" class="button">Edit</a>
-                <form method="POST" action="{{ url_for('delete', id=expense['rowid']) }}">
-                    <button type="submit" class="button-delete">Delete</button>
-                </form>
-            </td>
+            <td>{{ transaction.date }}</td>
+            <td>{{ transaction.description }}</td>
+            <td>{{ transaction.amount }}</td>
+            <td>{{ transaction.transaction_type }}</td>
         </tr>
-    {% endfor %}    
+        {% endfor %}
     </table>
 </body>
 </html>
