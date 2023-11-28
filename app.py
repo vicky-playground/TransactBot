@@ -31,7 +31,7 @@ db_chain = SQLDatabaseChain.from_llm(llm_hub, db, verbose=True)
 # Create db chain
 QUERY = """
 <s>[INST] 
-Given an input inquiry related to banking transactions, create a syntactically correct SQLite-compatible SQL query to run which shoudn't include "```" syntax. Then, execute this query against the 'transactions' table and provide the answer. 
+Given an input inquiry related to banking transactions, create a syntactically correct SQLite-compatible SQL query to run which shoudn't include any non-SQL syntax. Then, execute this query against the 'transactions' table and provide the answer. 
 
 Guidelines:
 - If no specific date/time is mentioned, include all transactions.
@@ -41,6 +41,7 @@ Guidelines:
 - If the SQL query result is [(None,)], then the relevant amount is $0
 - "Largest" or "smallest" should be understood as the transaction amount with the greatest absolute value (ORDER BY ABS(amount) DESC LIMIT 1;).
 - When a query specifically mentions 'salary', you should focus on transactions where the description column includes the term 'salary' (WHERE description LIKE '%salary%').
+- When being asked average of something, use the SQL query (AVG(column_name)) to do the calculation.
 
 <<SYS>>
 Use the following format:
