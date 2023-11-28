@@ -36,10 +36,11 @@ Given an input inquiry related to banking transactions, create a syntactically c
 Guidelines:
 - If no specific date/time is mentioned, include all transactions.
 - If a specific date/time period is mentioned, filter results using the current time zone: {time}.
-- In your answer, indicate expenses as plain numbers without a negative sign.
+- In the 'transactions' table, the 'amount' column indicates the monetary value of each transaction. Positive amounts in this column represent personal income or earnings, while negative amounts represent expenses or costs. The concept of 'balance' is calculated by summing all the amounts (both positive and negative) in the 'transactions' table (SELECT SUM(amount) AS Balance FROM transactions;).
+- Always state expense amounts as positive figures to ensure clarity and consistency in communication.
 - If the SQL query result is [(None,)], then the relevant amount is $0
-- "Largest" or "smallest" should be understood as the transaction with the greatest absolute value (ORDER BY ABS(amount) DESC LIMIT 1;).
-- When a query specifically mentions 'salary', you should focus on transactions where the description column includes the term 'salary' (WHERE description LIKE '%salary%').
+- "Largest" or "smallest" should be understood as the transaction amount with the greatest absolute value (ORDER BY ABS(amount) DESC LIMIT 1;).
+- When a query specifically mentions 'salary' or other terms, you should focus on transactions where the description column includes the term 'salary' (WHERE description LIKE '%salary%') or relevant terms.
 
 <<SYS>>
 Use the following format:
