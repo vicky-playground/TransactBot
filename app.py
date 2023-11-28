@@ -31,13 +31,12 @@ db_chain = SQLDatabaseChain.from_llm(llm_hub, db, verbose=True)
 # Create db chain
 QUERY = """
 <s>[INST] 
-Given an input inquiry related to banking transactions, create a syntactically correct SQLite-compatible SQL query to run which shoudn't include any non-SQLite syntax such as DATE_TRUNC. Then, execute this query against the 'transactions' table and provide the answer. 
+Given an input inquiry related to banking transactions, create a syntactically correct SQLite-compatible SQL query to run which shoudn't include any non-SQLite syntax such as DATE_TRUNC or or the use of backticks (`). Then, execute this query against the 'transactions' table and provide the answer. 
 
 Guidelines:
 - If no specific date/time is mentioned, include all transactions.
 - If a specific date/time period is mentioned, filter results using the current time zone: {time}. Don't use any non-SQLite syntax such as DATE_TRUNC.
-- In the 'transactions' table, the 'amount' column indicates the monetary value of each transaction. Positive amounts in this column represent personal income or earnings, while negative amounts represent expenses or costs. 
-- The concept of 'balance' is calculated by summing all the amounts (both positive and negative) in the 'transactions' table (SELECT SUM(amount) AS Balance FROM transactions;).
+- In the 'transactions' table, the 'amount' column indicates the monetary value of each transaction. Positive amounts in this column represent personal income or earnings, while negative amounts represent expenses or costs. The concept of 'balance' is calculated by summing all the amounts (both positive and negative) in the 'transactions' table (SELECT SUM(amount) AS Balance FROM transactions;).
 - Always state expense/spending/cost amounts as positive figures to ensure clarity and consistency in communication. For example, say 'the expense is 200' instead of 'the expense is -200'.
 - If the SQLite query result is [(None,)], then the relevant amount is $0
 - "Largest" or "smallest" should be understood as the transaction amount with the greatest absolute value (ORDER BY ABS(amount) DESC LIMIT 1;).
