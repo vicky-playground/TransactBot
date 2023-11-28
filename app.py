@@ -76,8 +76,8 @@ def init_db():
         sample_data = [
             ('2024-01-25', 'Salary', 2000),               # Income
             ('2023-12-25', 'Salary', 2000),               # Income
-            ('2023-12-15', 'Christmas Shopping', -250), # Expense
-            ('2023-12-01', 'Electricity Bill', -150),   # Expense
+            ('2023-12-15', 'Groceries', -250), # Expense
+            ('2023-12-01', 'Groceries', -150),   # Expense
             ('2023-03-15', 'Car Maintenance', -300),    # Expense
             ('2023-02-14', 'Valentine’s Gift', -100),   # Expense
             ('2023-01-01', 'New Year Party', -200)      # Expense            
