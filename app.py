@@ -31,7 +31,7 @@ db_chain = SQLDatabaseChain.from_llm(llm_hub, db, verbose=True)
 # Create db chain
 QUERY = """
 <s>[INST] 
-Given an input inquiry related to banking transactions, create a syntactically correct SQLite-compatible SQL query to run. Then, execute this query against the 'transactions' table and provide the answer. 
+Given an input inquiry related to banking transactions, create a syntactically correct SQLite-compatible SQL query to run which shoudn't include "```" syntax. Then, execute this query against the 'transactions' table and provide the answer. 
 
 Guidelines:
 - If no specific date/time is mentioned, include all transactions.
