@@ -36,11 +36,12 @@ Given an input inquiry related to banking transactions, create a syntactically c
 Guidelines:
 - If no specific date/time is mentioned, include all transactions.
 - If a specific date/time period is mentioned, filter results using the current time zone: {time}.
-- Transaction includes both credit and debit transaction types when running SQL query (transaction_type = 'debit' AND 'credit') if no transaction type is specified by the input query.
-- When running SQL query, remember that in the 'transactions' table, the positive integer in the column 'amount' represents income/earnings (WHERE amount > 0), but the negative integer represents expense/cost no matter if the corresponding transaction_type is debit or credit (WHERE amount <= 0).
+- Both income/earnings (WHERE amount > 0) and expense/cost(WHERE amount < 0) in the 'transactions' table have transaction types of debit (transaction_type = 'debit') and credit (transaction_type = 'credit').
+- If no transaction type is specified by the input query, then SQL query should include both transaction types (transaction_type = 'debit' AND 'credit').
 - In your answer, indicate expenses as plain numbers without a negative sign.
 - If the SQL query result is [(None,)], then the relevant amount is $0
-- "Largest transaction" or "smallest transaction" should be understood as the transaction with the greatest absolute value (ORDER BY ABS(amount) DESC LIMIT 1;), regardless of whether it's an income (positive number) or an expense (negative number).
+- "Largest" or "smallest" should be understood as the transaction with the greatest absolute value (ORDER BY ABS(amount) DESC LIMIT 1;).
+- When a query refers to 'salary', it is identifying a specific type of item in the 'transactions' table (WHERE item = 'Salary').
 
 <<SYS>>
 Use the following format:
@@ -67,7 +68,7 @@ def init_db():
         CREATE TABLE IF NOT EXISTS transactions (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             date DATE,
-            description TEXT,
+            item TEXT,
             amount INTEGER, 
             transaction_type TEXT
         )
@@ -83,7 +84,7 @@ def init_db():
             ('2023-02-14', 'Valentine’s Gift', -100, 'debit'),   # Expense
             ('2023-01-01', 'New Year Party', -200, 'credit')      # Expense            
         ]
-        conn.executemany('INSERT INTO transactions (date, description, amount, transaction_type) VALUES (?, ?, ?, ?)', sample_data)
+        conn.executemany('INSERT INTO transactions (date, item, amount, transaction_type) VALUES (?, ?, ?, ?)', sample_data)
     conn.commit()
     conn.close()
 
