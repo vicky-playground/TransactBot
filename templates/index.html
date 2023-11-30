@@ -1,34 +1,33 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Banking Transactions</title>
+    <title>Credit Card Transaction History</title>
     <link rel="stylesheet" href="static/styles.css">
 </head>
 <body>
     <div class="spinner" id="loadingSpinner"></div>
-    <h1>Banking Transaction History</h1>
+    <h1>Credit Card Transaction History</h1>
 
     <!-- Introduction Section -->
     <div class="introduction">
-        <p>Welcome to the Banking Transaction History system. Here, you can inquire about various aspects of your financial transactions. Just type your query in the form below and get insights into your expenses, incomes, and overall balance. Use the example queries as a guide to format your questions.</p>
+        <p>Welcome to the Credit Card Transaction History system. Here, you can inquire about various aspects of your financial transactions. Just type your query in the form below and get insights into your expenses, incomes, and overall balance. Use the example queries as a guide to format your questions.</p>
     </div>
 
     <!-- Example Questions Section -->
     <div class="examples">
-        <p>Example Inquiries:</p>
+        <p><strong>Example Inquiries:</strong></p>
         <ul>
-            <li>Total salary since 2023?</li>    
-            <li>What's the transaction record on 2023-02-14?</li>
-            <li>The net balance of transactions in 2023 Dec?</li>   
-            <li>Average spending on groceries in 2023 Dec?</li>        
-            <li>What is the largest expense amount in Q1 2023?</li>       
-            <li>Number of transactions since 2024?</li>                 
+            <li>What is my most frequent transaction category in 2023?</li>    
+            <li>How much did I spend on dining out in Q4 2023?</li>    
+            <li>What are the top 2 categories of my spendings in 2023?</li>    
+            <li>What is the average amount I spend on groceries?</li>    
+            <li>Which month had the highest utility bill payments in 2023?</li>                             
         </ul>
     </div>
 
     <div class="form-container">
         <form method="POST" action="/inquiry">
-            <label for="inquiry">Submit an Inquiry:</label>
+            <label for="inquiry"><strong>Submit an Inquiry:</strong></label>
             <input type="text" id="inquiry" name="inquiry" placeholder="Make an inquiry..." required>
             <input type="submit" value="Submit" class="submit-button">
         </form>
@@ -36,20 +35,21 @@
     </div>
     {% if answer %}
     <div class="response">
-        <p><strong>Response:</strong> {{ answer }}</p>
+        <p><strong>Response:</strong> {{ answer|safe }}</p>
     </div>
     {% endif %}
-
     <table>
         <tr>
             <th>Date</th>
-            <th>Description</th>
+            <th>Category</th>
+            <th>Merchant</th>
             <th>Amount</th>
         </tr>
         {% for transaction in transactions %}
         <tr>
             <td>{{ transaction.date }}</td>
-            <td>{{ transaction.description }}</td>
+            <td>{{ transaction.category }}</td>
+            <td>{{ transaction.merchant }}</td>
             <td>{{ transaction.amount }}</td>
         </tr>
         {% endfor %}
