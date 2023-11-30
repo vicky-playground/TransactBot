@@ -6,9 +6,6 @@ import sqlite3
 # connect to our database
 db = SQLDatabase.from_uri("sqlite:///history.db")
 
-# We can use db.table_info and check which sample rows are included:
-print(db.table_info)
-
 # create the database chain
 db_chain = SQLDatabaseChain.from_llm(llm_hub, db, verbose=True)
 
@@ -63,3 +60,6 @@ def init_db():
     conn.close()
 
 init_db()
+
+# We can use db.table_info and check which sample rows are included:
+print(db.table_info)
