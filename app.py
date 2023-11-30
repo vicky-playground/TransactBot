@@ -19,7 +19,7 @@ from datetime import datetime
 from langchain.utilities import SQLDatabase
 from langchain_experimental.sql import SQLDatabaseChain
 # connect to our database
-db = SQLDatabase.from_uri("sqlite:///banking.db")
+db = SQLDatabase.from_uri("sqlite:///history.db")
 
 # We can use db.table_info and check which sample rows are included:
 print(db.table_info)
@@ -31,34 +31,41 @@ db_chain = SQLDatabaseChain.from_llm(llm_hub, db, verbose=True)
 # Create db chain
 QUERY = """
 <s>[INST] 
-Given an input inquiry related to banking transactions, create a syntactically correct SQLite-compatible SQL query to run which shoudn't include any non-SQLite syntax such as DATE_TRUNC or or the use of backticks (`). Then, execute this query against the 'transactions' table and provide the answer. 
+You are a powerful text-to-SQLite model. Your job is to answer questions about a database. You are given a question and context regarding the table of credit card transaction records which represents a person's expense records. You must run SQLite queries to the table to find an answer. Ensure your query does not include any non-SQLite syntax such as DATE_TRUNC or any use of backticks (`) or "```sql". Then, execute this query against the 'transactions' table and provide the answer. 
+Provide strategies to manage expenses or tips to reduce the expenses in your answer as well. Compare the result with the spending in the previous months if any and include the insights in your answer.
 
 Guidelines:
-- If no specific date/time is mentioned, include all transactions.
-- If a specific date/time period is mentioned, filter results using the current time zone: {time}. Don't use any non-SQLite syntax such as DATE_TRUNC.
-- In the 'transactions' table, the 'amount' column indicates the monetary value of each transaction. Positive amounts in this column represent personal income or earnings, while negative amounts represent expenses or costs. The concept of 'balance' is calculated by summing all the amounts (both positive and negative) in the 'transactions' table (SELECT SUM(amount) AS Balance FROM transactions;).
-- Always state expense/spending/cost amounts as positive figures to ensure clarity and consistency in communication. For example, say 'the expense is 200' instead of 'the expense is -200'.
-- If the SQLite query result is [(None,)], then the relevant amount is $0
-- "Largest" or "smallest" should be understood as the transaction amount with the greatest absolute value (ORDER BY ABS(amount) DESC LIMIT 1;).
-- When a query specifically mentions 'salary', you should focus on transactions where the description column includes the term 'salary' (WHERE description LIKE '%salary%').
-- When being asked average of something, use the SQLite query (AVG(column_name)) to do the calculation.
+- Include all transactions if no specific date/time is mentioned. However, filter results to a specific date/time period using the current time zone: {time}. You should use ">=" or "<=" operators to filter the date or use "GROUP BY strftime('%m', date)" for grouping.  Assume the date format in the database is 'YYYY-MM-DD'.
+- If the query result is [(None,)], run the SQLite query again to double check the answer. 
+- If a specific category is mentioned in the inquiry, such as 'Groceries', 'Dining', or 'Utilities', use the "WHERE" condition in your SQL query to filter transactions by that category. For example, when asked for the average amount spent on 'Groceries', use "SELECT AVG(amount) FROM transactions WHERE category = 'Groceries'".
+- If not asked for a specific category, yuou shouldn't filter any category out. On the other hand, you should use "where" condition to do the filtering. When asked for the average amount in a category, use the SQLite query (AVG(amount) WHERE category = 'category_name').
+- When asked for \'highest\' or \'lowest\', use SQL function MAX() or MIN() respectively.
 
 <<SYS>>
-Use the following format:
-Query: Input inquiry
-SQLQuery: SQL query to run
-SQLResult: Result of the SQLQuery
-Answer: Final answer here with brief explanation
+Use the following format to answer the inquiry:
+
+Response: Result of the SQLite-compatible SQL query. If you know th transaction detailes such as the date, category, merchant, and amount, mention it in your answer to be more clear. - When asked for an \'overview\' of transactions, analyze and present the data in a way that highlights the proportions of different categories or types of transactions. For instance, calculate the percentage each category (like \'Groceries\', \'Dining\', \'Utilities\') contributes to the total transactions or total spending.
+---------------------- line break
+<br>
+---------------------- line break
+<br>
+Explanation: Concise and succinct explanation on your thought process on how to get the final answer including the relevant transaction details such as the date, category, merchant, and amount.
+---------------------- line break
+<br>
+---------------------- line break
+<br>
+Advice: Provide strategies to manage expenses or tips to reduce the expenses here.
+<</SYS>>
 
 {inquiry}
-<</SYS>>
 [/INST]
 """
+
 
 app = Flask(__name__)
 
 def get_db_connection():
-    conn = sqlite3.connect('banking.db', check_same_thread=False)
+    conn = sqlite3.connect('history.db', check_same_thread=False)
     conn.row_factory = sqlite3.Row
     return conn
 
@@ -68,26 +75,47 @@ def init_db():
         CREATE TABLE IF NOT EXISTS transactions (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             date DATE,
-            description TEXT,
+            category TEXT,
+            merchant TEXT,
             amount INTEGER
-        )
+        );
     """)
     # Insert sample data only if the table is empty
     if conn.execute('SELECT COUNT(*) FROM transactions').fetchone()[0] == 0:
         sample_data = [
-            ('2024-01-25', 'Salary', 2000),               # Income
-            ('2023-12-25', 'Salary', 2000),               # Income
-            ('2023-12-15', 'Groceries', -250), # Expense
-            ('2023-12-01', 'Groceries', -150),   # Expense
-            ('2023-03-15', 'Car Maintenance', -300),    # Expense
-            ('2023-02-14', 'Valentine’s Gift', -100),   # Expense
-            ('2023-01-01', 'New Year Party', -200)      # Expense            
+            ('2023-12-05', 'Online Shopping', 'E-Store', 120),
+            ('2023-12-02', 'Utilities', 'Internet Bill', 80),
+            # Nov Transactions
+            ('2023-11-29', 'Dining', 'Restaurant A', 85),
+            ('2023-11-22', 'Groceries', 'Supermarket', 60),
+            ('2023-11-15', 'Travel', 'Airline Ticket', 350),
+            ('2023-11-12', 'Utilities', 'Electricity Bill', 75),
+            ('2023-11-08', 'Online Shopping', 'Online Marketplace', 45),
+            ('2023-11-05', 'Entertainment', 'Cinema', 30),
+            # Transactions from earlier in the year
+            ('2023-10-20', 'Dining', 'Cafe', 20),
+            ('2023-10-15', 'Travel', 'Hotel Booking', 200),
+            ('2023-10-10', 'Groceries', 'Local Market', 50),
+            ('2023-10-06', 'Utilities', 'Water Bill', 40),
+            ('2023-09-25', 'Online Shopping', 'Tech Store', 150),
+            ('2023-09-15', 'Travel', 'Taxi Service', 25),
+            ('2023-09-22', 'Dining', 'Restaurant B', 90),
+            ('2023-09-10', 'Utilities', 'Electricity Bill', 100),
+            ('2023-09-05', 'Groceries', 'Grocery Store', 80),
+            ('2023-08-18', 'Utilities', 'Gas Bill', 60),
+            ('2023-08-12', 'Entertainment', 'Streaming Service', 15),
+            ('2023-08-06', 'Online Shopping', 'E-Store', 300),
+            ('2023-07-30', 'Travel', 'Train Ticket', 40),
+            ('2023-07-10', 'Dining', 'Fast Food', 25),
+            ('2023-07-03', 'Utilities', 'Water Bill', 50)
         ]
-        conn.executemany('INSERT INTO transactions (date, description, amount) VALUES (?, ?, ?)', sample_data)
+
+        conn.executemany('INSERT INTO transactions (date, category, merchant, amount) VALUES (?, ?, ?, ?)', sample_data)
     conn.commit()
     conn.close()
 
 init_db()
+
 
 @app.route('/')
 def index():
@@ -99,15 +127,25 @@ def index():
 @app.route('/inquiry', methods=['POST'])
 def submit_inquiry():
     inquiry = request.form['inquiry']
-    prompt = QUERY.format(time=datetime.now(pytz.timezone('America/New_York')), inquiry=inquiry)
-    response = db_chain.run(prompt)
-    print(f"answer: {response}")
+    # Determine if the inquiry is about spending advice
+    if "reduce my spending" in inquiry:
+        # Logic to handle advice-based inquiries
+        response = handle_advice_inquiry(inquiry)
+    else:
+        # Handle regular transaction queries
+        prompt = QUERY.format(time=datetime.now(pytz.timezone('America/New_York')), inquiry=inquiry)
+        response = db_chain.run(prompt)
+        #print(f"answer: {response}")
 
     # Fetch transactions data again to pass to the template
     conn = get_db_connection()
     cursor = conn.execute('SELECT id, * FROM transactions ORDER BY date DESC')
     transactions = [dict(ix) for ix in cursor.fetchall()]
     conn.close()
+
+    # Replace newline characters with HTML break tags
+    response = response.replace('\n', '<br>')
+    
     return render_template('index.html', inquiry=prompt, answer=response, transactions=transactions)
 
 if __name__ == '__main__':
