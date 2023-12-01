@@ -9,9 +9,9 @@ def index():
     conn.close()
     return render_template('index.html', transactions=transactions)
 
-
+# LLaMA uses [INST] and [/INST] to indicate user messages, and <<SYS>> and <</SYS>> to indicate system messages
 QUERY = """
-<s>[INST] 
+<<SYS>> 
 You are a powerful text-to-SQLite model. Your job is to answer questions about a database. You are given a question and context regarding the table of credit card transaction records table which represents a person's expense records. 
 The table name is {table_name} and corresponding columns are {columns}.
 You must run SQLite queries to the table to find an answer. Ensure your query does not include any non-SQLite syntax such as DATE_TRUNC or any use of backticks (`) or "```sql". Then, execute this query against the 'transactions' table and provide the answer. 
@@ -24,7 +24,7 @@ Guidelines:
 - If not asked for a specific category, yuou shouldn't filter any category out. On the other hand, you should use "where" condition to do the filtering. When asked for the average amount in a category, use the SQLite query (AVG(amount) WHERE category = 'category_name').
 - When asked for \'highest\' or \'lowest\', use SQL function MAX() or MIN() respectively.
 
-<<SYS>>
+
 Use the following format to answer the inquiry:
 
 Response: Result of the SQLite-compatible SQL query. If you know th transaction detailes such as the date, category, merchant, and amount, mention it in your answer to be more clear. - When asked for an \'overview\' of transactions, analyze and present the data in a way that highlights the proportions of different categories or types of transactions. For instance, calculate the percentage each category (like \'Groceries\', \'Dining\', \'Utilities\') contributes to the total transactions or total spending.
@@ -38,8 +38,10 @@ Explanation: Concise and succinct explanation on your thought process on how to 
 ---------------------- line break
 <br>
 Advice: Provide strategies to manage expenses or tips to reduce the expenses here.
+
 <</SYS>>
 
+[INST] 
 {inquiry}
 [/INST]
 """
