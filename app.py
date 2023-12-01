@@ -1,23 +1,24 @@
 from flask import Flask, render_template, request
-from datetime import datetime
-import pytz
-from langchain.agents import initialize_agent, Tool
-from langchain.agents import AgentType
-from langchain.chains import LLMMathChain
-from langchain.prompts import PromptTemplate
 
-from datetime import datetime
+app = Flask(__name__)
 
-from db import *
+@app.route('/')
+def index():
+    conn = get_db_connection()
+    transactions = conn.execute('SELECT id, * FROM transactions ORDER BY date DESC').fetchall()
+    conn.close()
+    return render_template('index.html', transactions=transactions)
 
 
 QUERY = """
 <s>[INST] 
-You are a powerful text-to-SQLite model. Your job is to answer questions about a database. You are given a question and context regarding the table of credit card transaction records which represents a person's expense records. You must run SQLite queries to the table to find an answer. Ensure your query does not include any non-SQLite syntax such as DATE_TRUNC or any use of backticks (`) or "```sql". Then, execute this query against the 'transactions' table and provide the answer. 
+You are a powerful text-to-SQLite model. Your job is to answer questions about a database. You are given a question and context regarding the table of credit card transaction records table which represents a person's expense records. 
+The table name is {table_name} and corresponding columns are {columns}.
+You must run SQLite queries to the table to find an answer. Ensure your query does not include any non-SQLite syntax such as DATE_TRUNC or any use of backticks (`) or "```sql". Then, execute this query against the 'transactions' table and provide the answer. 
 Provide strategies to manage expenses or tips to reduce the expenses in your answer as well. Compare the result with the spending in the previous months if any and include the insights in your answer.
 
 Guidelines:
-- Include all transactions if no specific date/time is mentioned. However, filter results to a specific date/time period using the current time zone: {time}. You should use ">=" or "<=" operators to filter the date or use "GROUP BY strftime('%m', date)" for grouping.  Assume the date format in the database is 'YYYY-MM-DD'.
+- Filter results using the current time zone: {time} only when query specifis a specific date/time period. You should use ">=" or "<=" operators to filter the date or use "GROUP BY strftime('%m', date)" for grouping into month.  Assume the date format in the database is 'YYYY-MM-DD'.
 - If the query result is [(None,)], run the SQLite query again to double check the answer. 
 - If a specific category is mentioned in the inquiry, such as 'Groceries', 'Dining', or 'Utilities', use the "WHERE" condition in your SQL query to filter transactions by that category. For example, when asked for the average amount spent on 'Groceries', use "SELECT AVG(amount) FROM transactions WHERE category = 'Groceries'".
 - If not asked for a specific category, yuou shouldn't filter any category out. On the other hand, you should use "where" condition to do the filtering. When asked for the average amount in a category, use the SQLite query (AVG(amount) WHERE category = 'category_name').
@@ -43,28 +44,23 @@ Advice: Provide strategies to manage expenses or tips to reduce the expenses her
 [/INST]
 """
 
+from db import *
+from langchain_experimental.sql import SQLDatabaseChain
+from model import llm_hub, embeddings
 
-app = Flask(__name__)
+# Create the database chain
+db_chain = SQLDatabaseChain.from_llm(llm_hub, db, verbose=True)
 
-@app.route('/')
-def index():
-    conn = get_db_connection()
-    transactions = conn.execute('SELECT id, * FROM transactions ORDER BY date DESC').fetchall()
-    conn.close()
-    return render_template('index.html', transactions=transactions)
+from datetime import datetime
+import pytz
 
 @app.route('/inquiry', methods=['POST'])
 def submit_inquiry():
     inquiry = request.form['inquiry']
-    # Determine if the inquiry is about spending advice
-    if "reduce my spending" in inquiry:
-        # Logic to handle advice-based inquiries
-        response = handle_advice_inquiry(inquiry)
-    else:
-        # Handle regular transaction queries
-        prompt = QUERY.format(time=datetime.now(pytz.timezone('America/New_York')), inquiry=inquiry)
-        response = db_chain.run(prompt)
-        #print(f"answer: {response}")
+
+    # Handle transaction queries
+    prompt = QUERY.format(table_name=table_name, columns=columns, time=datetime.now(pytz.timezone('America/New_York')), inquiry=inquiry)
+    response = db_chain.run(prompt)
 
     # Fetch transactions data again to pass to the template
     conn = get_db_connection()
