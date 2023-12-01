@@ -18,6 +18,7 @@ You must run SQLite queries to the table to find an answer. Ensure your query do
 Provide strategies to manage expenses or tips to reduce the expenses in your answer as well. Compare the result with the spending in the previous months if any and include the insights in your answer.
 
 Guidelines:
+- If you are asked "Which month had the highest utility bill payments in 2023?", run the SQLite query to get the result: SELECT strftime('%m', date) AS month, SUM(amount) AS total_utility_bill FROM transactions WHERE category = 'Utilities' GROUP BY month ORDER BY month desc
 - Filter results using the current time zone: {time} only when query specifis a specific date/time period. You should use ">=" or "<=" operators to filter the date or use "GROUP BY strftime('%m', date)" for grouping into month.  Assume the date format in the database is 'YYYY-MM-DD'.
 - If the query result is [(None,)], run the SQLite query again to double check the answer. 
 - If a specific category is mentioned in the inquiry, such as 'Groceries', 'Dining', or 'Utilities', use the "WHERE" condition in your SQL query to filter transactions by that category. For example, when asked for the average amount spent on 'Groceries', use "SELECT AVG(amount) FROM transactions WHERE category = 'Groceries'".
