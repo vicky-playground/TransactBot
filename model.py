@@ -2,7 +2,6 @@
 import torch
 # Llamaindex also works with langchain framework to implement embeddings 
 from langchain.embeddings import HuggingFaceInstructEmbeddings
-from langchain.embeddings.huggingface import HuggingFaceEmbeddings
 from ibm_watson_machine_learning.foundation_models.extensions.langchain import WatsonxLLM
 from ibm_watson_machine_learning.foundation_models.utils.enums import ModelTypes, DecodingMethods
 from ibm_watson_machine_learning.metanames import GenTextParamsMetaNames as GenParams
